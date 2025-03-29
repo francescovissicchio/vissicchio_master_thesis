@@ -3,7 +3,7 @@ import networkx as nx
 from collections import Counter
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-
+# tutto in inglese
 # Parametri SEIR
 BETA = 0.2    # contagio
 ALPHA = 0.3   # incubazione
