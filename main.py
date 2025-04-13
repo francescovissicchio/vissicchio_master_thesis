@@ -3,6 +3,7 @@ from utility import create_graph
 import matplotlib.pyplot as plt
 from models import sis, seir, seirv, seirvq
 
+
 model_map = {
     0: ("SIS", sis),
     1: ("SEIR", seir),

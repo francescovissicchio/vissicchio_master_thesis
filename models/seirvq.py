@@ -28,6 +28,7 @@ def state_transition(G, current_state, beta, alpha, gamma, vacc_prob, quar_prob)
             if rd.random() < alpha:
                 next_state[node] = 'I'
 
+
         elif state == 'I':
             if rd.random() < quar_prob:
                 next_state[node] = 'Q'

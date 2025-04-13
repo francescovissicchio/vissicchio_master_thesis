@@ -11,6 +11,7 @@ def initial_state(G):
 def state_transition(G, current_state, beta, alpha, gamma):
     next_state = {}
 
+
     for node in G.nodes:
         state = current_state[node]
 

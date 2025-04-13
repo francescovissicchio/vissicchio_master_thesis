@@ -2,6 +2,7 @@ import random as rd
 import networkx as nx
 from models.sis import Simulation
 
+
 def initial_state(G):
     state = {node: 'S' for node in G.nodes}
     patient_zero = rd.choice(list(G.nodes))

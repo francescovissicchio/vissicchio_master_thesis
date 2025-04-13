@@ -4,6 +4,7 @@ import networkx as nx
 def doppio(x):
   return 2*x
 
+
 def create_graph(model, parameters):
   if model=='erdos-reny':
       n = parameters['n']  # Number of nodes

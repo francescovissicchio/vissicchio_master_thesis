@@ -75,6 +75,7 @@ class Simulation:
         title = f'{self.name}: {"initial state" if step == 0 else f"step {step}"}'
         plt.title(title)
 
+
     def plot(self):
         x = range(len(self._states))
         counts = [Counter(s.values()) for s in self._states]
