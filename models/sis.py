@@ -1,61 +1,33 @@
 import random as rd
-import networkx as nx
-from collections import Counter
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import networkx as nx
+from collections import Counter
 
-# Parametri SEIRV
-BETA = 0.2        # contagio
-ALPHA = 0.3       # incubazione
-GAMMA = 0.1       # guarigione
-VACC_PROB = 0.01  # probabilità di vaccinazione per i suscettibili
+def initial_state(G):
+    return {node: 'I' if node == rd.choice(list(G.nodes)) else 'S' for node in G.nodes}
 
-def initial_state_seirv(G):
-    state = {node: 'S' for node in G.nodes}
-    patient_zero = rd.choice(list(G.nodes))
-    state[patient_zero] = 'E'  # Iniziamo con un esposto
-    return state
-
-def state_transition_seirv(G, current_state):
+def state_transition(G, current_state, mu, beta):
     next_state = {}
-
     for node in G.nodes:
-        state = current_state[node]
-
-        if state == 'S':
-            # Prova a vaccinarsi
-            if rd.random() < VACC_PROB:
-                next_state[node] = 'V'
-                continue
-
-            # Prova a essere infettato dai vicini
+        if current_state[node] == 'I':
+            if rd.random() < mu:
+                next_state[node] = 'S'
+        elif current_state[node] == 'S':
             for neighbor in G.neighbors(node):
                 if current_state[neighbor] == 'I':
-                    if rd.random() < BETA:
-                        next_state[node] = 'E'
+                    if rd.random() < beta:
+                        next_state[node] = 'I'
                         break
-
-        elif state == 'E':
-            if rd.random() < ALPHA:
-                next_state[node] = 'I'
-
-        elif state == 'I':
-            if rd.random() < GAMMA:
-                next_state[node] = 'R'
-
-        # R e V non cambiano più stato
-
     return next_state
 
-class SimulationSEIRV:
-    def __init__(self, G, initial_state=initial_state_seirv, state_transition=state_transition_seirv,
-                 stop_condition=None, name='SEIRV Simulation'):
+class Simulation:
+    def __init__(self, G, initial_state, state_transition, stop_condition=None, name=''):
         self.G = G.copy()
         self._initial_state = initial_state
         self._state_transition = state_transition
         self._stop_condition = stop_condition
-        self.name = name
-
+        self.name = name or 'Simulation'
         self._states = []
         self._value_index = {}
         self._cmap = plt.cm.get_cmap('tab10')
@@ -63,18 +35,15 @@ class SimulationSEIRV:
         self._pos = nx.spring_layout(G)
 
     def _initialize(self):
-        if callable(self._initial_state):
-            state = self._initial_state(self.G)
-        else:
-            state = self._initial_state
+        state = self._initial_state(self.G)
         nx.set_node_attributes(self.G, state, 'state')
         self._append_state(state)
 
     def _append_state(self, state):
         self._states.append(state)
-        for val in set(state.values()):
-            if val not in self._value_index:
-                self._value_index[val] = len(self._value_index)
+        for value in set(state.values()):
+            if value not in self._value_index:
+                self._value_index[value] = len(self._value_index)
 
     def _step(self):
         state = nx.get_node_attributes(self.G, 'state')
@@ -99,26 +68,30 @@ class SimulationSEIRV:
         state = self.state(step)
         node_colors = [self._cmap(self._value_index[state[n]]) for n in self.G.nodes]
         nx.draw(self.G, pos=self._pos, node_color=node_colors, **kwargs)
-
         if labels is None:
             labels = sorted(set(state.values()), key=self._value_index.get)
         patches = [mpl.patches.Patch(color=self._cmap(self._value_index[l]), label=l) for l in labels]
         plt.legend(handles=patches)
-
-        step_title = 'initial state' if step == 0 else f'step {step}'
-        plt.title(f'{self.name}: {step_title}')
+        title = f'{self.name}: {"initial state" if step == 0 else f"step {step}"}'
+        plt.title(title)
 
     def plot(self):
         x = range(len(self._states))
         counts = [Counter(s.values()) for s in self._states]
-        labels = sorted(set(val for c in counts for val in c), key=self._value_index.get)
-
+        labels = sorted({k for count in counts for k in count}, key=self._value_index.get)
         for label in labels:
             series = [c.get(label, 0) / len(self.G) for c in counts]
             plt.plot(x, series, label=label)
-
         plt.title(f'{self.name}: state proportions over time')
         plt.xlabel('Step')
         plt.ylabel('Proportion')
         plt.legend()
-        plt.show()
+
+def get_simulation(G, params):
+    mu = params['mu']
+    beta = params['beta']
+
+    def transition(G, state):
+        return state_transition(G, state, mu, beta)
+
+    return Simulation(G, initial_state=initial_state, state_transition=transition, name="SIS")
