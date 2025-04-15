@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import networkx as nx
 from collections import Counter
+import csv
 
 def initial_state(G):
     return {node: 'I' if node == rd.choice(list(G.nodes)) else 'S' for node in G.nodes}
@@ -33,6 +34,25 @@ class Simulation:
         self._cmap = plt.cm.get_cmap('tab10')
         self._initialize()
         self._pos = nx.spring_layout(G)
+
+    def save_to_csv(self, filename, aggregate=False):
+        with open(filename, mode='w', newline='') as file:
+            writer = csv.writer(file)
+
+            if aggregate:
+                # Scrive: Step, Stato1, Stato2, ...
+                counts = [Counter(s.values()) for s in self._states]
+                labels = sorted({k for count in counts for k in count}, key=self._value_index.get)
+                writer.writerow(['Step'] + labels)
+                for step, count in enumerate(counts):
+                    row = [step] + [count.get(label, 0) for label in labels]
+                    writer.writerow(row)
+            else:
+                # Scrive: Step, Node, State
+                writer.writerow(['Step', 'Node', 'State'])
+                for step, state in enumerate(self._states):
+                    for node, value in state.items():
+                        writer.writerow([step, node, value])
 
     def _initialize(self):
         state = self._initial_state(self.G)
