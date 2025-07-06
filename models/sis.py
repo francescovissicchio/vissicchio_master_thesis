@@ -108,6 +108,11 @@ class Simulation:
         plt.ylabel('Proportion')
         plt.legend()
 
+    @property
+    def snapshots(self):
+        return self._states
+
+
 def get_simulation(G, params):
     mu = params['mu']
     beta = params['beta']
