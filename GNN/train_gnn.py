@@ -166,7 +166,7 @@ def train():
         print(f"          > Val Loss: {val_loss / len(val_loader):.4f}")
 
     # Crea la cartella 'models' se non esiste
-    model_dir = "models"
+    model_dir = "models_dir"
     os.makedirs(model_dir, exist_ok=True)
 
     # Salva il modello con la data
